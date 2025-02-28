@@ -1,0 +1,24 @@
+<div class="min-h-screen bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
+      <h1 class="text-lg font-semibold">Tareas de {{ username }}</h1>
+      <button 
+        class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white text-sm font-medium"
+        (click)="logout()">
+        Cerrar Sesión
+      </button>
+    </nav>
+  
+    <!-- Contenedor de las Cards -->
+    <div class="p-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <app-taskcard
+          *ngFor="let task of tasks"
+          [name]="task.title"
+          [description]="task.description"
+          [state]="task.completed">
+        </app-taskcard>
+      </div>
+    </div>
+  </div>
+  
