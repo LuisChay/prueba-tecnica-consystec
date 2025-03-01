@@ -1,13 +1,40 @@
-<div class="bg-white shadow-md rounded-lg p-4 border border-gray-200">
-    <h2 class="text-lg font-semibold text-gray-800">{{ name }}</h2>
-    <p class="text-gray-600 mt-2">{{ description }}</p>
+<div class="bg-white shadow-md rounded-lg p-6 border border-gray-200 flex flex-col gap-4">
+  <!-- Título de la tarea -->
+  <h2 class="text-lg font-semibold text-gray-800 break-words text-center">{{ task.name }}</h2>
+
+  <!-- Descripción de la tarea -->
+  <p class="text-gray-600 text-sm break-words text-center">{{ task.description }}</p>
+
+  <!-- Estado de la tarea -->
+  <div class="flex flex-col items-center gap-3">
+    <span
+      class="px-4 py-2 rounded-full text-sm font-medium"
+      [ngClass]="task.finished ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+      {{ task.finished ? 'Completada' : 'Pendiente' }}
+    </span>
   
-    <div class="mt-3 flex items-center">
-      <span 
-        class="px-3 py-1 rounded-full text-sm font-medium"
-        [ngClass]="state ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-        {{ state ? 'Completada' : 'Pendiente' }}
-      </span>
-    </div>
+    <!-- Botón para alternar estado  -->
+    <button 
+      class="flex items-center justify-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg w-full sm:w-auto"
+      [ngClass]="task.finished ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'"
+      (click)="toggleTaskState()">
+      <span *ngIf="!task.finished">Marcar como Completada</span>
+      <span *ngIf="task.finished">Marcar como Pendiente</span>
+    </button>
   </div>
   
+  <!-- Botones de acción -->
+  <div class="flex flex-col sm:flex-row justify-center gap-2 mt-4">
+    <a 
+    [routerLink]="['/edit', task.id]"
+    class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg w-full sm:w-auto text-center block">
+    Editar
+  </a>
+    
+    <button 
+      class="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded-lg w-full sm:w-auto"
+      (click)="deleteTask()">
+      Eliminar
+    </button>
+  </div>
+</div>

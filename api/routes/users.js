@@ -13,7 +13,6 @@ const jwtRenewalWindow = process.env.JWT_RENEWAL_WINDOW;
 
 module.exports = (connection) => {
   // Ruta para registrar un usuario 
-// Ruta para registrar un usuario con verificación de correo existente
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -100,8 +99,6 @@ router.post('/login', (req, res) => {
 
 
   // Ruta protegida para obtener el perfil del usuario
-// Ruta protegida para obtener el perfil del usuario
-// Ruta protegida para obtener el perfil del usuario (valida la cookie)
 router.get('/profile', (req, res) => {
   const token = req.cookies.token;
   if (!token) {
@@ -115,8 +112,6 @@ router.get('/profile', (req, res) => {
     res.json({ id: decoded.id, username: decoded.username });
   });
 });
-
-
 
   // Ruta para el logout del usuario
   router.post('/logout', (req, res) => {

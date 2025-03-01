@@ -37,7 +37,7 @@ export class LoginComponent {
         return;
       }
   
-      console.log("Iniciando sesión con:", this.user);
+      //console.log("Iniciando sesión con:", this.user);
       this.usersService.loginUser(this.user).subscribe(
         response => {
           console.log('Usuario logueado:', response);
@@ -47,7 +47,7 @@ export class LoginComponent {
             text: 'Bienvenido',
             confirmButtonText: 'OK'
           }).then(() => {
-            this.router.navigate(['/userview']);
+            this.router.navigate(['/tasks']);
           });
         },
         error => {

@@ -1,23 +1,23 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {User} from '../models/user';
+import { User } from '../models/user';
 import { catchError, switchMap, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsersService {
+  private readonly apiUrl = 'http://localhost:5000/users'; // Base URL de la API
   public currentUsername: string | null = null;
 
-  constructor(private http: HttpClient) { }
-
+  constructor(private http: HttpClient) {}
 
   /*
   Se registra un usuario a partir de la Interfaz en la base de datos
   */
   registerUser(user: User) {
     return this.http.post<{ success: string }>(
-      'http://localhost:5000/users/register', 
+      `${this.apiUrl}/register`, 
       user
     ).pipe(
       catchError(error => {
@@ -33,34 +33,32 @@ export class UsersService {
     Se loguea un usuario a partir de la Interfaz en la base de datos
     Se verifica que la sesion se mantenga activa con el token
   */
-    loginUser(user: User) {
-      return this.http.post<{ success: string }>(
-        'http://localhost:5000/users/login', 
-        user, 
+  loginUser(user: User) {
+    return this.http.post<{ success: string }>(
+      `${this.apiUrl}/login`, 
+      user, 
+      { withCredentials: true }
+    ).pipe(
+      switchMap(() => this.http.get<{ id: number, username: string }>(
+        `${this.apiUrl}/profile`, 
         { withCredentials: true }
-      ).pipe(
-        switchMap(() => this.http.get<{ id: number, username: string }>(
-          'http://localhost:5000/users/profile', 
-          { withCredentials: true }
-        )),
-        tap(response => {
-          localStorage.setItem('currentUserId', response.id.toString());
-          localStorage.setItem('currentUsername', response.username);
-          console.log('Usuario validado:', response.username, 'ID:', response.id);
-        })
-      );
-    }
-    
-    
-  
+      )),
+      tap(response => {
+        localStorage.setItem('currentUserId', response.id.toString());
+        localStorage.setItem('currentUsername', response.username);
+        console.log('Usuario validado:', response.username, 'ID:', response.id);
+      })
+    );
+  }
 
   /*
-  Se cierra sesion en la aplicacion
+  Se cierra sesión en la aplicación
   */
   logoutUser() {
     localStorage.removeItem('currentUsername');
+    localStorage.removeItem('currentUserId');
     this.currentUsername = null;
-    return this.http.post('http://localhost:5000/users/logout', { withCredentials: true });
+    return this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true });
   }
 
   /*
@@ -68,9 +66,8 @@ export class UsersService {
   */
   renewToken() {
     return this.http.get<{ success: string, token?: string, username?: string }>(
-      'http://localhost:5000/users/renew',
+      `${this.apiUrl}/renew`,
       { withCredentials: true }
     );
   }
-  
 }

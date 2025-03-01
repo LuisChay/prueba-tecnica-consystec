@@ -1,24 +1,47 @@
 <div class="min-h-screen bg-gray-100">
-    <!-- Navbar -->
-    <nav class="bg-blue-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
-      <h1 class="text-lg font-semibold">Tareas de {{ username }}</h1>
-      <button 
-        class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white text-sm font-medium"
-        (click)="logout()">
-        Cerrar Sesión
-      </button>
-    </nav>
-  
-    <!-- Contenedor de las Cards -->
-    <div class="p-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <app-taskcard
-          *ngFor="let task of tasks"
-          [name]="task.title"
-          [description]="task.description"
-          [state]="task.completed">
-        </app-taskcard>
-      </div>
-    </div>
+  <!-- Navbar -->
+  <nav class="bg-blue-600 text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <h1 class="text-lg font-semibold">Tareas de {{ username }}</h1>
+    <button 
+      class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white text-sm font-medium"
+      (click)="logout()">
+      Cerrar Sesión
+    </button>
+  </nav>
+
+<!-- Botón para crear una nueva tarea -->
+<div class="p-6 flex justify-left">
+<a 
+  class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-white font-medium"
+  routerLink="/task/form">
+  Nueva Tarea
+</a>
+</div>
+
+<!-- Formulario de creación o edición -->
+<div *ngIf="showTaskForm" class="p-6 flex justify-center">
+  <app-task-form 
+  (taskSaved)="onTaskSaved($event)">
+</app-task-form>
+
+</div>
+
+
+<!-- Contenedor de las Cards -->
+<div class="p-6">
+  <div *ngIf="tasks.length === 0" class="text-center text-gray-600 text-lg font-semibold">
+    Aún no hay tareas
   </div>
-  
+
+  <div *ngIf="tasks.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <app-taskcard
+    *ngFor="let task of tasks"
+    [task]="task" 
+    (edit)="editTask(task)"
+    (delete)="deleteTask(task)"
+    (toggleState)="toggleTaskState(task)">
+  </app-taskcard>
+  </div>
+</div>
+
+</div>

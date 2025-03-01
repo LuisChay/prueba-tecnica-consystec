@@ -3,6 +3,7 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { LandingComponent } from './components/landing/landing.component';
 import { UserviewComponent } from './components/userview/userview.component';
+import { TaskFormComponent } from './components/taskform/taskform.component';
 
 export const routes: Routes = [
         {
@@ -18,7 +19,15 @@ export const routes: Routes = [
             component: LandingComponent
         },
         {
-            path: 'userview',
+            path: 'tasks',
             component: UserviewComponent
+        },
+        {
+            path: 'task/form',
+            component: TaskFormComponent
+        },
+        {
+            path: 'edit/:id',
+            component: TaskFormComponent
         }
 ];

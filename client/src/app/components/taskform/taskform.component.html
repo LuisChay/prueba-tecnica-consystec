@@ -1,1 +1,51 @@
-<p>taskform works!</p>
+<div class="min-h-screen bg-gray-100 flex justify-center items-center">
+  <form (ngSubmit)="onSubmit()" class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+
+    <!-- Título de accion a realizar (Actualizar o crear) -->
+    <h2 class="text-xl font-semibold mb-4">{{ isEditing ? 'Actualizar Tarea' : 'Nueva Tarea' }}</h2>
+  
+    <!-- Titulo -->
+    <div class="mb-4">
+      <label for="name" class="block text-sm font-medium text-gray-700">Título</label>
+      <input
+        type="text"
+        id="name"
+        [(ngModel)]="task.name"
+        name="name"
+        required
+        class="mt-1 p-2 w-full border rounded-md"
+      />
+    </div>
+  
+    <!-- Descripción -->
+    <div class="mb-4">
+      <label for="description" class="block text-sm font-medium text-gray-700">Descripción</label>
+      <textarea
+        id="description"
+        [(ngModel)]="task.description"
+        name="description"
+        required
+        class="mt-1 p-2 w-full border rounded-md"
+      ></textarea>
+    </div>
+  
+    <!-- Crear o actualizar -->
+    <button
+      type="submit"
+      class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md"
+      [disabled]="isLoading"
+    >
+      {{ isLoading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Crear') }}
+    </button>
+  
+    <!-- Botón para cancelar -->
+    <a
+    routerLink="/tasks"
+    class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md mt-4 text-center block">
+    Cancelar
+  </a>
+  
+  
+  </form>
+  
+</div>
