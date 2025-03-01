@@ -37,7 +37,7 @@ export class TaskFormComponent implements OnInit {
         this.isEditing = true;
         this.loadTask(Number(taskId)); // Convertimos de manera segura
       } else {
-        this.task.user_id = this.currentUserId ?? 0;
+        this.task.user_id = this.currentUserId ?? 0; // Asignar el ID del usuario actual
       }
     });
     

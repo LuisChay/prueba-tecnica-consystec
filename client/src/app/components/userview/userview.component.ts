@@ -1,18 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { UsersService } from '../../services/users.service'
+import { UsersService } from '../../services/users.service';
 import { TasksService } from '../../services/tasks.service';
 import { Task } from '../../models/task';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
-import { TaskFormComponent } from '../taskform/taskform.component';
 import { TaskCardComponent } from '../taskcard/taskcard.component';
 import { ChangeDetectorRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-userview',
   standalone: true,
-  imports: [CommonModule, TaskFormComponent, TaskCardComponent, RouterLink],
+  imports: [CommonModule, FormsModule, TaskCardComponent, RouterLink],
   templateUrl: './userview.component.html',
   styleUrl: './userview.component.css'
 })
@@ -22,8 +24,9 @@ export class UserviewComponent implements OnInit {
   userId: string | null = null;
   tasks: Task[] = [];
   showTaskForm: boolean = false;
+  filterStatus: string = 'all';
+  searchTerm$ = new BehaviorSubject<string>(''); // Para la búsqueda asincrónica
 
-  // En lugar de `null`, usa un objeto vacío con valores predeterminados
   selectedTask: Task = {
     name: '', description: '', finished: false, user_id: 0,
   };
@@ -34,9 +37,14 @@ export class UserviewComponent implements OnInit {
     this.username = localStorage.getItem('currentUsername');
     this.userId = localStorage.getItem('currentUserId');
     this.loadTasks();
+
+    // Manejo de búsqueda asincrónica
+    this.searchTerm$.pipe(debounceTime(300)).subscribe(() => {
+      this.cdr.detectChanges(); // Refrescar la vista tras el debounce
+    });
   }
 
-  // Cargar tareas
+  // Obtener tareas desde la API
   loadTasks() {
     this.taskService.getTasks().subscribe(
       (tasks) => this.tasks = tasks,
@@ -44,41 +52,47 @@ export class UserviewComponent implements OnInit {
     );
   }
 
-  // Alternar la visibilidad del formulario y asignar una nueva tarea
-  toggleTaskForm() {
-    this.showTaskForm = !this.showTaskForm;
-    console.log('toggleTaskForm ejecutado, showTaskForm:', this.showTaskForm); // Depuración
-    this.cdr.detectChanges(); // Forzar actualización de la UI
+  // Método para capturar cambios en la barra de búsqueda
+  onSearchChange(event: Event) {
+    const inputElement = event.target as HTMLInputElement; // 
+    this.searchTerm$.next(inputElement.value.toLowerCase().trim());
+  }
   
-    if (this.showTaskForm) {
-      this.selectedTask = {
-        name: '',
-        description: '',
-        finished: false,
-        user_id: parseInt(this.userId || '0', 10),
-      };
+
+  // Filtrar tareas por estado y búsqueda asincrónica
+  get filteredTasks(): Task[] {
+    let filtered = this.tasks;
+
+    // Aplicar filtro por estado
+    if (this.filterStatus === 'pending') {
+      filtered = filtered.filter(task => !task.finished);
+    } else if (this.filterStatus === 'completed') {
+      filtered = filtered.filter(task => task.finished);
     }
+
+    // Aplicar filtro de búsqueda
+    const searchTerm = this.searchTerm$.getValue();
+    if (searchTerm) {
+      filtered = filtered.filter(task => task.name.toLowerCase().includes(searchTerm));
+    }
+
+    return filtered;
   }
 
-  // Editar una tarea existente
   editTask(task: Task) {
-    this.router.navigate(['/edit', task.id]); //Redirigir con el ID de la tarea
+    this.router.navigate(['/edit', task.id]);
   }
 
-  // Guardar la tarea (crear o actualizar)
   onTaskSaved(task: Task) {
-    console.log('Tarea guardada:', task); // Depuración
     if (task.id) {
       this.tasks = this.tasks.map(t => t.id === task.id ? task : t);
     } else {
       this.tasks.push(task);
     }
   }
-  
 
   deleteTask(task: Task) {
-    if (!task || task.id === undefined) { // Asegurarnos de que el task no sea undefined
-      console.error('Error: La tarea es undefined o no tiene un ID válido');
+    if (!task || task.id === undefined) {
       Swal.fire('Error', 'No se puede eliminar una tarea sin ID.', 'error');
       return;
     }
@@ -97,49 +111,36 @@ export class UserviewComponent implements OnInit {
             this.tasks = this.tasks.filter(t => t.id !== task.id);
             Swal.fire('Eliminado', 'La tarea ha sido eliminada', 'success');
           },
-          (error) => {
-            console.error('Error al eliminar tarea:', error);
-            Swal.fire('Error', 'No se pudo eliminar la tarea.', 'error');
-          }
+          (error) => Swal.fire('Error', 'No se pudo eliminar la tarea.', 'error')
         );
       }
     });
   }
-  
+
   toggleTaskState(task: Task) {
-    if (!task.id) {
-      console.error('Error: La tarea no tiene un ID válido');
-      return;
-    }
+    if (!task.id) return;
   
-    // Guardamos el estado anterior en caso de error
     const previousState = task.finished;
-  
-    // Actualizamos la UI inmediatamente
     task.finished = !task.finished;
-    this.cdr.detectChanges(); // Forzar actualización de la UI
+    this.cdr.detectChanges();
   
     this.taskService.toggleTaskState(task.id).subscribe(
       (response) => {
-        task.finished = response.finished; // Confirmar cambio en la API
+        task.finished = response.finished;
         this.cdr.detectChanges();
       },
       (error) => {
-        console.error('Error al cambiar el estado de la tarea:', error);
-        task.finished = previousState; // Revertir si hay error
+        task.finished = previousState;
         this.cdr.detectChanges();
       }
     );
   }
-  
 
   logout() {
     Swal.fire({
       title: 'Cerrando sesión...',
       allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
+      didOpen: () => Swal.showLoading()
     });
 
     this.usersService.logoutUser().subscribe(
@@ -152,18 +153,10 @@ export class UserviewComponent implements OnInit {
           showConfirmButton: false
         });
 
-        setTimeout(() => {
-          this.router.navigate(['/']);
-        }, 2000);
+        setTimeout(() => this.router.navigate(['/']), 2000);
       },
       error => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un problema cerrando sesión. Inténtalo nuevamente.',
-          timer: 3000,
-          showConfirmButton: false
-        });
+        Swal.fire('Error', 'Hubo un problema cerrando sesión. Inténtalo nuevamente.', 'error');
       }
     );
   }
